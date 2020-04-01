@@ -2,8 +2,6 @@
 %   Input file for pathfinder data collection probe simulation
 % 
 % Author:   Tiger Hou
-% Created:  02/29/2020
-% Modified: 03/03/2020
 %
 % Aeroassist Simulation (asim) Source Code
 %
@@ -67,7 +65,7 @@ in.v.mp.m_ini = 3300; % double, kg, vehicle mass
 % Navigation
 in.v.gnc.n.p.mode = uint8(2); % Use Markov process/ECRV error model
 in.v.gnc.n.p.rate = 20; % Hz
-in.v.gnc.n.p.seed = uint32(1); % nd, Error model seed
+in.v.gnc.n.p.seed = uint32(2); % nd, Error model seed
 in.v.gnc.n.p.tau = 600; % s, time constant
 in.v.gnc.n.p.omega = in.p.omega; % rad/s, planet angular velocity vector
 in.v.gnc.n.p.r_e = in.p.r_e; % m, planet equatorial radius
@@ -87,6 +85,25 @@ in.v.gnc.g.p.bank_mode = uint8(6); % uint8, nd, pathfinder probe/main guidance
 
 % Guidance parameters
 in.v.gnc.g.p.const_bank = 0; % double, rad, constant bank angle
+in.v.gnc.g.p_pathfinder.mass = in.v.mp.m_ini;
+in.v.gnc.g.p_pathfinder.area_ref = in.v.aero.area_ref;
+in.v.gnc.g.p_pathfinder.tgt_ap = 430000e3;
+in.v.gnc.g.p_pathfinder.tgt_pe = 2500e3 + in.p.r_e;
+in.v.gnc.g.p_pathfinder.cl = in.v.aero.cl;
+in.v.gnc.g.p_pathfinder.cd = in.v.aero.cd;
+in.v.gnc.g.p_pathfinder.omega = in.p.omega;
+in.v.gnc.g.p_pathfinder.type = 1;
+
+% Markov process PSS matrix
+P_SS = zeros(9);
+P_SS(1:6,1:6) = [ ...
+    2.981933182e-02  5.369876516e-02  7.337381389e-02  3.062525841e-05  1.173553844e-05  9.742939383e-06; ...
+    5.369876516e-02  1.144226269e-01  1.498759926e-01  6.301336474e-05  2.198443978e-05  1.900429607e-05; ...
+    7.337381389e-02  1.498759926e-01  1.983781389e-01  8.324339215e-05  2.974134394e-05  2.542989381e-05; ...
+    3.062525841e-05  6.301336474e-05  8.324339215e-05  3.494835789e-08  1.243167048e-08  1.065436605e-08; ...
+    1.173553844e-05  2.198443978e-05  2.974134394e-05  1.243167048e-08  4.663582047e-09  3.905447999e-09; ...
+    9.742939383e-06  1.900429607e-05  2.542989381e-05  1.065436605e-08  3.905447999e-09  3.309286454e-09 ];
+in.v.gnc.n.p.P_SS = P_SS*(1000^2);
 
 
 end % aa_pathfinder_in()

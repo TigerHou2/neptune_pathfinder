@@ -22,7 +22,7 @@ nep_atm = p.atm.table;
 nep_atm(:,3) = nep_atm(:,2).*(10.^(nep_atm(:,1)/8e5));
 
 % add Fminmax = -1 data to 4th column
-nep_atm(:,3) = nep_atm(:,2)./(10.^(nep_atm(:,1)/4e5));
+nep_atm(:,4) = nep_atm(:,2)./(10.^(nep_atm(:,1)/4e5));
 
 % add perturbation model to 5th column
 % ratio provided in Fig 3(b) from [1]
