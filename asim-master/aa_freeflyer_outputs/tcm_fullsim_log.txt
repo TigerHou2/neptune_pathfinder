@@ -1,0 +1,40 @@
+Opening MatlabInterface object: 'MATT'.
+Loaded dll's and function pointers.
+Successfully opened MatlabInterface object: 'MATT'.
+Resetting MATLAB errors.
+Change MATLAB current directory to project directory.
+Opening and launching MATLAB interface.
+Setting up MATLAB search paths.
+Calling MATLAB interface.
+Creating MATLAB data type for populating FreeFlyer Variable: 'LoD'.
+Retrieving pointer from MATLAB for: 'LoD'.
+Populating MATLAB variable with FreeFlyer data: '0.25'.
+Creating MATLAB data type for populating FreeFlyer Variable: 'fpa_init'.
+Retrieving pointer from MATLAB for: 'fpa_init'.
+Populating MATLAB variable with FreeFlyer data: '-7.85285'.
+Creating MATLAB data type for populating FreeFlyer Array: 'v_init'.
+Retrieving pointer from MATLAB for: 'v_init'.
+Populating MATLAB array: 'v_init' element: '0' with FreeFlyer data: '-2192.5'.
+Populating MATLAB array: 'v_init' element: '1' with FreeFlyer data: '23725.9'.
+Populating MATLAB array: 'v_init' element: '2' with FreeFlyer data: '23319'.
+Creating MATLAB data type for populating FreeFlyer Array: 'r_init'.
+Retrieving pointer from MATLAB for: 'r_init'.
+Populating MATLAB array: 'r_init' element: '0' with FreeFlyer data: '2.35827e+07'.
+Populating MATLAB array: 'r_init' element: '1' with FreeFlyer data: '4.84723e+06'.
+Populating MATLAB array: 'r_init' element: '2' with FreeFlyer data: '-7.64913e+06'.
+Executing MATLAB script.
+Retrieving pointer from MATLAB for reading 'LoD'.
+Populating FreeFlyer Variable: 'LoD' with MATLAB data: 'LoD' with value of: '0.25'.
+Retrieving pointer from MATLAB for reading 'fpa_init'.
+Populating FreeFlyer Variable: 'fpa_init' with MATLAB data: 'fpa_init' with value of: '-7.85285'.
+Retrieving pointer from MATLAB for reading 'v_init'.
+Populating FreeFlyer Array: 'v_init' element: '0' with MATLAB data: '-4721.66'.
+Populating FreeFlyer Array: 'v_init' element: '1' with MATLAB data: '14755.6'.
+Populating FreeFlyer Array: 'v_init' element: '2' with MATLAB data: '13532.4'.
+Retrieving pointer from MATLAB for reading 'r_init'.
+Populating FreeFlyer Array: 'r_init' element: '0' with MATLAB data: '2.26399e+07'.
+Populating FreeFlyer Array: 'r_init' element: '1' with MATLAB data: '1.40237e+07'.
+Populating FreeFlyer Array: 'r_init' element: '2' with MATLAB data: '812883'.
+Call on MatlabInterface object: 'MATT' executed successfully.
+Closing MatlabInterface object: 'MATT'.
+MatlabInterface object: 'MATT' closed successfully.
