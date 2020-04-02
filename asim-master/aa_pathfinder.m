@@ -90,7 +90,6 @@ grid on
 set(gca,'XScale','log');
 xlabel('Density, $kg/m^3$')
 ylabel('Height, km')
-latexify
 
 % Plot Density Estiamte Error
 
@@ -99,6 +98,9 @@ nep_atm = aa_make_nep_atm;
 hold on
 semilogx(nep_atm(:,2),nep_atm(:,1)/1e3) % nominal
 hold off
+title('True Density vs. Estimated Density')
+legend('Estimated Density','True Density')
+latexify
 
 err = zeros(idx,1);
 height = zeros(idx,1);
@@ -133,6 +135,7 @@ end
 
 figure(101)
 scatter(err,height,size,'filled')
+title('Density Estimate Error vs. Height')
 grid(gca,'minor')
 grid on
 % set(gca,'XScale','log');
@@ -141,5 +144,12 @@ ylabel('Height, km')
 latexify
 
 %% Plot Altitude as a Function of Time
+figure(102)
 plot(test.g.pathfinder.t(1:idx),...
      vecnorm(test.g.pathfinder.R_pci(1:idx,:),2,2)/1000-24764)
+title('Vehicle Flight Path')
+grid(gca,'minor')
+grid on
+xlabel('Time, s')
+ylabel('Altitude, km')
+latexify

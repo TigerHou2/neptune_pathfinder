@@ -215,7 +215,7 @@ out_3 = [out_3,dv_3];
 
 % recombine all cases
 out = [out_1;out_2;out_3];
-out = out_1;
+% out = out_1;
 
 % remove all results that exceed the delta-v limit
 out(min(out(:,end),[],2)>dv_lim,:) = [];
