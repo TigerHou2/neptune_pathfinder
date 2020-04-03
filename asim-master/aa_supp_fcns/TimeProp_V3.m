@@ -73,7 +73,7 @@ rp = a * (1-e);
 % Prussing & Conway eq. 2.46
 x_guess = mu*dT^2/(rp*(double(feval(F,sqrt(mu)*dT/rp))+sqrt(mu)*dT));
 
-if isnan(x_guess)
+if isnan(x_guess) || abs(x_guess)<1e-3
     x_guess = 1;
 end
 

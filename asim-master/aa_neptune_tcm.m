@@ -29,7 +29,7 @@ rotn = [x_axis, y_axis, z_axis];    % parallel to the equator
 
 v_ei = 30.5e3 * rotn * [sin(fpa_cur); cos(fpa_cur); 0]; % EI velocity
 
-tcm_1_leadtime = 14;    % days
+tcm_1_leadtime = 2;    % days
 tcm_2_leadtime = 1;     % days
 
 visualize = false;
@@ -62,14 +62,23 @@ bp_time = - tcm_1_leadtime - tcm_2_leadtime;
 % get current orbit parameters
 [a1,e1,i1,omg1,w1,f1] = Get_Orb_Params(r1,v1,neptune.mu);
 
+% get EI orbit parameters pre-TCM
+[a_ei,e_ei,i_ei,omg_ei,w_ei,f_ei] = Get_Orb_Params(r_ei,v_ei,neptune.mu);
+
 % optimize TCM-1 (x = [a,e,f])
-fun = @(x) abs(x(3)-a1);
-x0 = [a1;norm(e1);0];
-lb = [-Inf,0,-2*asin(1/norm(e1))];
-ub = [0,Inf,2*asin(1/norm(e1))];
-options = optimoptions(@fmincon,'display','iter');
-x = fmincon(fun,x0,[],[],[],[],lb,ub,@(x)nonlcon(x,norm(r_ei),fpa_tgt),...
-            options);
+ft =   @(x) 2*pi - acos( ( x(1)*(1-x(2)^2)-norm(r1) ) / x(2) / norm(r1) );
+dfpa = @(x) abs( atan(   e1*sin( f1    ) / (1+  e1*cos( f1    )) ) - ...
+                 atan( x(2)*sin( ft(x) ) / (1+x(2)*cos( ft(x) )) ) );
+vt =   @(x) sqrt( neptune.mu * (2/norm(r1) - 1/x(1)) );
+fun =  @(x) ( cos(dfpa(x)) * vt(x) - norm(v1) )^2 + ...
+            ( sin(dfpa(x)) * vt(x) )^2;
+
+x0 = [a_ei;norm(e_ei);f_ei];
+lb = [-Inf,1,-2*asin(1/norm(e_ei))];
+ub = [0,Inf,2*asin(1/norm(e_ei))];
+options = optimoptions(@fmincon,'display','none');
+x = fmincon(fun,x0,[],[],[],[],lb,ub,...
+            @(x)nonlcon(x,norm(r_ei),norm(r1),fpa_tgt),options);
 a1_tcm = x(1);
 e1_tcm = x(2);
 f_ei_1_tcm = x(3);
@@ -77,8 +86,8 @@ r1_tcm = r1;
 
 v1_tcm_norm = sqrt(neptune.mu*(2/norm(r1_tcm)-1/a1_tcm));
 
-f1_tcm = acos((a1_tcm*(e1_tcm^2-1)/norm(r1_tcm)-1)/e1_tcm);
-f1_tcm = -sign(f1_tcm)*f1_tcm;
+f1_tcm = acos((a1_tcm*(1-e1_tcm^2)/norm(r1_tcm)-1)/e1_tcm);
+f1_tcm = 2*pi-sign(f1_tcm)*f1_tcm;
 
 % find new velocity vector
 fpa1 = atan(norm(e1)*sin(f1)/(1+norm(e1)*cos(f1)));
@@ -94,22 +103,8 @@ v1_tcm = v1_tcm_norm * rotn * [sin(fpa1_tcm); cos(fpa1_tcm); 0];
 dv1 = norm( v1 - v1_tcm );
 
 
-% visualize
-% disp_orbit(r1_tcm,v1_tcm,neptune.mu,100,105,105,'red')
-% 
-% hold on
-% [x,y,z] = sphere;
-% x = x*neptune.r_m;
-% y = y*neptune.r_m;
-% z = z*neptune.r_m;
-% nep_disp = surf(x,y,z);
-% alpha(nep_disp,0.5)
-% hold off
-% 
-% view([1,1,1])
-
-
 %% TCM-2: adjust s/c efpa
+
 
 
 
@@ -117,12 +112,14 @@ dv1 = norm( v1 - v1_tcm );
 
 %% Nonlinear Constraint Functions
 
-function [c,ceq] = nonlcon(x,r,fpa)
+function [c,ceq] = nonlcon(x,r_ei,r1,fpa)
 
-    c(1) = x(1);
-    c(2) = -(x(2)-1);
-    ceq(1) = r - ( x(1) * (x(2)^2-1) ) / ( 1 + x(2)*cos(x(3)) );
-    ceq(2) = tan(fpa) - x(2)*sin(x(3)) / ( 1 + x(2)*cos(x(3)) );
-    ceq(3) = sign(fpa) - sign(x(3));
+    c(1) = x(1);  % SMA <= 0 (hyperbolic constraint)
+    c(2) = -(x(2)-1); % ECC >= 0 (hyperbolic constraint)
+    c(3) = x(3);  % f <= 0 (negative fpa constraint)
+    c(4) = abs((x(1)*(1-x(2)^2)/r1-1)/x(2))-1; % abs(cos(f1_tcm)) <= 1
+    ceq(1) = r_ei - ( x(1) * (x(2)^2-1) ) / ( 1 + x(2)*cos(x(3)) );
+    ceq(2) = tan(fpa) - ( x(2)*sin(x(3)) / ( 1 + x(2)*cos(x(3)) ));
+    ceq(3) = sign(fpa) - sign(x(3)); % sign(f) = sign(fpa)
 
 end

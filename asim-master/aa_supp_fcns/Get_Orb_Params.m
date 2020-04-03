@@ -31,5 +31,7 @@ if dot(r,v) < 0
     f = 2*pi - f;
 end
 
+e = norm(e);
+
 end
 
