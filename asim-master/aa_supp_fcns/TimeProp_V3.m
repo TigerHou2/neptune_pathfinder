@@ -71,7 +71,11 @@ v = r0 * x*sqrt(mu)/norm(r)/norm(r0) * (temp1*S(temp1)-1) + ...
 rp = a * (1-e);
 
 % Prussing & Conway eq. 2.46
-x_guess = mu*dT^2/(rp *(double(feval(F,sqrt(mu)*dT/rp))+sqrt(mu)*dT));
+x_guess = mu*dT^2/(rp*(double(feval(F,sqrt(mu)*dT/rp))+sqrt(mu)*dT));
+
+if isnan(x_guess)
+    x_guess = 1;
+end
 
 options = optimoptions('fsolve','Display','none');
 x1 = fsolve(F,x_guess,options);
