@@ -30,28 +30,11 @@ rotn = [x_axis, y_axis, z_axis];    % parallel to the equator
 
 v_ei_0 = 30.5e3 * rotn * [sin(fpa_cur); cos(fpa_cur); 0]; % EI velocity
 
-leadtime_tcm1 = 140; % days, main s/c slowdown maneuver before original EI
+leadtime_tcm1 = 210; % days, main s/c slowdown maneuver before original EI
 leadtime_tcm2 = 1;  % days, main s/c FPA correction maneuver before modified EI
                     %       (this is also the main s/c delay time)
 
-visualize = false;
-
-if visualize
-
-    disp_orbit(r_ei_0,v_ei_0,mu,30,0.02,0,'red')
-
-    hold on
-    [x,y,z] = sphere;
-    x = x*neptune.r_m;
-    y = y*neptune.r_m;
-    z = z*neptune.r_m;
-    nep_disp = surf(x,y,z);
-    alpha(nep_disp,0.5)
-    hold off
-
-    view([1,1,1])
-    
-end
+visualize = true;
 
 
 %% TCM-1: delay s/c delivery
@@ -79,11 +62,11 @@ fun =  @(x) ( cos(dfpa(x)) * vt(x) - norm(v1) )^2 + ...
 x0 = [a_ei_0;norm(e_ei_0);f_ei_0];
 lb = [-Inf,   1,   pi];
 ub = [   0, Inf, 2*pi];
-options = optimoptions(@fmincon,'display','final',...
+options = optimoptions(@fmincon,'display','none',...
                                 'MaxFunctionEvaluations',20000,...
                                 'MaxIterations',2500);
-x = fmincon(fun,x0,[],[],[],[],lb,ub,...
-            @(x)nonlcon_tcm1(x,r_ei_0,r1,fpa_cur,dt,mu),options);
+[x,~,exitflag] = fmincon(fun,x0,[],[],[],[],lb,ub,...
+                      @(x)nonlcon_tcm1(x,r_ei_0,r1,fpa_cur,dt,mu),options);
 a1_tcm = x(1);
 e1_tcm = x(2);
 f_ei_1_tcm = x(3);
@@ -106,6 +89,8 @@ rotn = [x_axis, y_axis, z_axis];
 v1_tcm = v1_tcm_norm * rotn * [sin(fpa1_tcm); cos(fpa1_tcm); 0];
 
 dv1 = norm( v1 - v1_tcm );
+
+disp(['TCM-1 Delta-v: ' num2str(dv1) ' m/s, Exit Flag: ' num2str(exitflag)])
 
 
 %% TCM-2: adjust s/c efpa
@@ -141,9 +126,9 @@ fun =  @(x) ( cos(dfpa(x)) * vt(x) - norm(v2) )^2 + ...
 x0 = [a_ei_2;norm(e_ei_2);f_ei_2];
 lb = [-Inf,1,-2*asin(1/norm(e_ei_2))];
 ub = [0,Inf,2*asin(1/norm(e_ei_2))];
-options = optimoptions(@fmincon,'display','final');
-x = fmincon(fun,x0,[],[],[],[],lb,ub,...
-            @(x)nonlcon_tcm2(x,r_ei_2,r2,fpa_tgt),options);
+options = optimoptions(@fmincon,'display','none');
+[x,~,exitflag] = fmincon(fun,x0,[],[],[],[],lb,ub,...
+                         @(x)nonlcon_tcm2(x,r_ei_2,r2,fpa_tgt),options);
 a2_tcm = x(1);
 e2_tcm = x(2);
 f_ei_2_tcm = x(3);
@@ -167,7 +152,30 @@ v2_tcm = v2_tcm_norm * rotn * [sin(fpa2_tcm); cos(fpa2_tcm); 0];
 
 dv2 = norm( v2 - v2_tcm );
 
+disp(['TCM-2 Delta-v: ' num2str(dv2) ' m/s, Exit Flag: ' num2str(exitflag)])
 
+if visualize
+
+    figure(107)
+    hold on
+    
+    disp_orbit(r_ei_0,v_ei_0,mu,50,0.05,0,'red')
+    disp_orbit(r1_tcm,v1_tcm,mu,50,0.05,leadtime_tcm1+leadtime_tcm2,'magenta')
+    disp_orbit(r2_tcm,v2_tcm,mu,50,0.05,leadtime_tcm2,'blue')
+
+    [x,y,z] = sphere;
+    x = x*neptune.r_m;
+    y = y*neptune.r_m;
+    z = z*neptune.r_m;
+    nep_disp = surf(x,y,z);
+    alpha(nep_disp,0.5)
+    hold off
+
+    view([1,1,1])
+    
+end
+
+    
 %% Nonlinear Constraint Functions
 
 function [c,ceq] = nonlcon_tcm1(x,r_ei_0,r1,fpa_cur,dt,mu)
