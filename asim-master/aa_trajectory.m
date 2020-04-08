@@ -43,7 +43,7 @@ y0 = [in.s.traj.r_pci_ini; ... % PCI position vector, m
       0.0 ];                   % heat load, W/m^2
 
 % Initialize GNC data structures
-[nav, nav_rnd] = navigation_init(in);
+[nav, nav_rnd] = aa_navigation_init(in);
 guid = aa_guidance_init(in);
 ctrl = control_init(in);
 
@@ -60,7 +60,7 @@ y0(7,i) = y0(7,i) + calcs_curr.delta_mass;
 azi_pp0 = calcs_curr.azi_pp;
 
 % Initial call to flight computer (GNC)
-nav = navigation( ttvec(i), i, calcs_curr, nav_rnd, nav );
+nav = aa_navigation( ttvec(i), i, calcs_curr, nav_rnd, nav );
 guid = aa_guidance( in, calcs_curr, ttvec(i), i, nav, guid );
 ctrl = control( calcs_curr, ttvec(i), i, nav, guid, ctrl );
 
@@ -98,7 +98,7 @@ for i = 2:N
 
 
     %% Flight computer (GNC)
-    nav = navigation( ttvec(i), i, calcs_curr, nav_rnd, nav );
+    nav = aa_navigation( ttvec(i), i, calcs_curr, nav_rnd, nav );
     guid = aa_guidance( in, calcs_curr, ttvec(i), i, nav, guid );
     ctrl = control( calcs_curr, ttvec(i), i, nav, guid, ctrl );
 

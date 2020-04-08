@@ -35,7 +35,10 @@ p = struct( ...
     'cl', double(0), ...    % nd, lift coefficient
     'cd', double(0), ...    % nd, drag coefficient
     'omega', double(zeros(3,1)), ... % rad/s, planet rotation rate
-    'type', double(1) ... % nd, int, whether vehicle is probe(1) or main(2)
+    'type', double(1), ... % nd, int, whether vehicle is probe(1) or main(2)
+    'scale', double(zeros(3,1)), ... % nd, 3-sigma scaling error of r,v,a
+    'bias', double(zeros(9,1)), ...  % m, m/s, m/s^2, 3-sigma bias of r,v,a
+    'tilt', double(zeros(3,1)) ...   % rad, 3-sigma axis misalignment of r,v,a w.r.t. x-axis
     );  
 
 

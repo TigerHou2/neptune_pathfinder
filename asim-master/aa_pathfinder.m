@@ -97,6 +97,8 @@ nep_atm = aa_make_nep_atm;
 
 hold on
 semilogx(nep_atm(:,2),nep_atm(:,1)/1e3) % nominal
+semilogx(nep_atm(:,2).*(10.^(nep_atm(:,1)/8e5)),nep_atm(:,1)/1e3) %Fminmax= 1
+semilogx(nep_atm(:,2)./(10.^(nep_atm(:,1)/4e5)),nep_atm(:,1)/1e3) %Fminmax=-1
 hold off
 title('True Density vs. Estimated Density')
 legend('Estimated Density','True Density')
