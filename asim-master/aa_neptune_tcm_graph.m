@@ -31,7 +31,7 @@ rotn = [x_axis, y_axis, z_axis];    % parallel to the equator
 v_ei_0 = 30.5e3 * rotn * [sin(fpa_cur); cos(fpa_cur); 0]; % EI velocity
 
 % days, main s/c slowdown maneuver before original EI
-leadtime_tcm1_vect = linspace(10,400,39); 
+leadtime_tcm1_vect = linspace(10,400,40); 
 % days, main s/c FPA correction maneuver before modified EI
 % (this is also the main s/c delay time)
 leadtime_tcm2_vect = linspace(1,20,20);
