@@ -63,7 +63,7 @@ in.s.data_rate = 1;
 in.v.mp.m_ini = 3300; % double, kg, vehicle mass
 
 % Navigation
-in.v.gnc.n.p.mode = uint8(2); % Use Markov process/ECRV error model
+in.v.gnc.n.p.mode = uint8(3); % Use ECRV + accelerometer bias & tilt
 in.v.gnc.n.p.rate = 20; % Hz
 in.v.gnc.n.p.seed = uint32(2); % nd, Error model seed
 in.v.gnc.n.p.tau = 100; % s, time constant
@@ -94,6 +94,10 @@ in.v.gnc.g.p_pathfinder.cd = in.v.aero.cd;
 in.v.gnc.g.p_pathfinder.omega = in.p.omega;
 in.v.gnc.g.p_pathfinder.type = 1;
 
+in.v.gnc.g.p_pathfinder.scale = [0; 0.1; 0.0012];
+in.v.gnc.g.p_pathfinder.bias  = [0; 0; 0; 0; 0; 0; 244e-6; 244e-6; 244e-6];
+in.v.gnc.g.p_pathfinder.tilt  = [0; 0; 5e-3];
+
 % Markov process PSS matrix
 P_SS = zeros(9);
 P_SS(1:6,1:6) = [ ...
@@ -103,6 +107,7 @@ P_SS(1:6,1:6) = [ ...
     3.063e-05  6.301e-05  8.324e-05  3.494e-08  1.243e-08  1.065e-08; ...
     1.173e-05  2.198e-05  2.974e-05  1.243e-08  4.663e-09  3.905e-09; ...
     9.742e-06  1.904e-05  2.542e-05  1.065e-08  3.905e-09  3.309e-09 ];
+% P_SS(7:9,7:9) = eye(3);
 in.v.gnc.n.p.P_SS = P_SS*(1000^2);
 
 
