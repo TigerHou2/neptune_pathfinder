@@ -65,11 +65,15 @@ in.v.mp.m_ini = 3300; % double, kg, vehicle mass
 % Navigation
 in.v.gnc.n.p.mode = uint8(3); % Use ECRV + accelerometer bias & tilt
 in.v.gnc.n.p.rate = 20; % Hz
-in.v.gnc.n.p.seed = uint32(2); % nd, Error model seed
+in.v.gnc.n.p.seed = uint32(4); % nd, Error model seed
 in.v.gnc.n.p.tau = 100; % s, time constant
 in.v.gnc.n.p.omega = in.p.omega; % rad/s, planet angular velocity vector
 in.v.gnc.n.p.r_e = in.p.r_e; % m, planet equatorial radius
 in.v.gnc.n.p.r_p = in.p.r_p; % m, planet polar radius
+
+in.v.gnc.n.p.scale = [0; 0.1; 0.0012];
+in.v.gnc.n.p.bias  = [0; 0; 0; 0; 0; 0; 244e-6; 244e-6; 244e-6];
+in.v.gnc.n.p.tilt  = [0; 0; deg2rad(5)];
 
 % Aerodynamics
 LoD = 0;
@@ -93,10 +97,6 @@ in.v.gnc.g.p_pathfinder.cl = in.v.aero.cl;
 in.v.gnc.g.p_pathfinder.cd = in.v.aero.cd;
 in.v.gnc.g.p_pathfinder.omega = in.p.omega;
 in.v.gnc.g.p_pathfinder.type = 1;
-
-in.v.gnc.g.p_pathfinder.scale = [0; 0.1; 0.0012];
-in.v.gnc.g.p_pathfinder.bias  = [0; 0; 0; 0; 0; 0; 244e-6; 244e-6; 244e-6];
-in.v.gnc.g.p_pathfinder.tilt  = [0; 0; 5e-3];
 
 % Markov process PSS matrix
 P_SS = zeros(9);

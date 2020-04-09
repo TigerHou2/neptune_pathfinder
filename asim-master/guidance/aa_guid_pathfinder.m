@@ -44,6 +44,7 @@ s.V_pf_pci = i.V_pf_pci;
 s.A_sens_pci = i.A_sens_pci;
 
 s.rho_est = (2*p.mass*norm(i.A_sens_pci))/(norm(i.V_pf_pci)^2*p.area_ref*p.cd); % kg/m^3
+% s.rho_est = (2*p.mass*abs(i.A_sens_pci(1)))/((i.V_pf_pci(1))^2*p.area_ref*p.cd); % kg/m^3
 s.fpa = pi/2-atan2(norm(cross(i.R_pci,i.V_pf_pci)),dot(i.R_pci,i.V_pf_pci));
 
 switch p.type
