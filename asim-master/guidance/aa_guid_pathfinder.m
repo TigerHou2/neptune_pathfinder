@@ -37,15 +37,32 @@ end
 
 %% Preliminary calculations
 
+s.dt = i.t - s.t_ini - s.t;
 s.t = i.t - s.t_ini; % s, guidance time, relative to initialization time
-s.R_pci = i.R_pci;
-s.V_inrtl_pci = i.V_inrtl_pci;
-s.V_pf_pci = i.V_pf_pci;
+    s.R_pci = i.R_pci;
+    s.V_inrtl_pci = i.V_inrtl_pci;
+    s.V_pf_pci = i.V_pf_pci;
 s.A_sens_pci = i.A_sens_pci;
+s.cd = i.cd;
 
-s.rho_est = (2*p.mass*norm(i.A_sens_pci))/(norm(i.V_pf_pci)^2*p.area_ref*p.cd); % kg/m^3
-% s.rho_est = (2*p.mass*abs(i.A_sens_pci(1)))/((i.V_pf_pci(1))^2*p.area_ref*p.cd); % kg/m^3
-s.fpa = pi/2-atan2(norm(cross(i.R_pci,i.V_pf_pci)),dot(i.R_pci,i.V_pf_pci));
+% numerical integration of accelerometer data
+s.V_inrtl_pci_est = s.V_inrtl_pci_est + (s.A_sens_pci + i.g_pci) * s.dt;
+s.R_pci_est = s.R_pci_est + s.V_inrtl_pci_est * s.dt;
+
+theta = norm(p.omega) * i.t;
+L = [ cos(theta) sin(theta) 0; ...
+     -sin(theta) cos(theta) 0; ...
+      0          0          1];
+
+s.V_pf_pci_est = L * ( s.V_inrtl_pci_est - cross(p.omega,s.R_pci_est) );
+
+s.rho_est = (2*p.mass*norm(s.A_sens_pci)) ...
+          / (norm(s.V_pf_pci_est)^2*p.area_ref*s.cd); % kg/m^3
+s.fpa = pi/2-atan2( norm(cross(s.R_pci_est,s.V_pf_pci_est)) ...
+                       , dot(s.R_pci_est,s.V_pf_pci_est) );
+
+% s.rho_est = (2*p.mass*norm(i.A_sens_pci))/(norm(i.V_pf_pci)^2*p.area_ref*p.cd); % kg/m^3
+% s.fpa = pi/2-atan2(norm(cross(i.R_pci,i.V_pf_pci)),dot(i.R_pci,i.V_pf_pci));
 
 switch p.type
     case 1 % probe
@@ -66,6 +83,10 @@ function [ s ] = init(i, s, p)
 %% Initialize states
 s.cmd_bank = 0;
 s.t_ini = i.t;
+
+s.V_inrtl_pci_est = i.V_inrtl_pci;
+s.V_pf_pci_est = i.V_pf_pci;
+s.R_pci_est = i.R_pci;
         
 end % init
 

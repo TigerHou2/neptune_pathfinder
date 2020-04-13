@@ -225,7 +225,11 @@ dat.g.pathfinder.R_pci = nan(t_length,3);
 dat.g.pathfinder.V_inrtl_pci = nan(t_length,3);
 dat.g.pathfinder.V_pf_pci = nan(t_length,3);
 dat.g.pathfinder.A_sens_pci = nan(t_length,3);
-
+dat.g.pathfinder.V_inrtl_pci_est = nan(t_length,3);
+dat.g.pathfinder.V_pf_pci_est = nan(t_length,3);
+dat.g.pathfinder.R_pci_est = nan(t_length,3);
+dat.g.pathfinder.dt = nan(t_length,1);
+dat.g.pathfinder.cd = nan(t_length,1);
 
 % Termination
 dat.term.cond = uint8(zeros(10,1));

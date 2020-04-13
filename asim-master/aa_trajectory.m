@@ -319,7 +319,7 @@ function dat = store_dat( calcs, i, ti, y, veh, guid, nav, ctrl, dat, in )
     dat.g.bank_a.yb(i) = guid.bank_a.s.yb;
     dat.g.bank_a.rho(i) = guid.bank_a.s.rho;
     
-    % Store BANK-TEST guidance data
+    % Store PATHFINDER guidance data
     dat.g.pathfinder.cmd_bank(i) = guid.pathfinder.s.cmd_bank;
     dat.g.pathfinder.fpa(i) = guid.pathfinder.s.fpa;
     dat.g.pathfinder.rho_est(i) = guid.pathfinder.s.rho_est;
@@ -329,6 +329,11 @@ function dat = store_dat( calcs, i, ti, y, veh, guid, nav, ctrl, dat, in )
     dat.g.pathfinder.V_inrtl_pci(i,:) = guid.pathfinder.s.V_inrtl_pci;
     dat.g.pathfinder.V_pf_pci(i,:) = guid.pathfinder.s.V_pf_pci;
     dat.g.pathfinder.A_sens_pci(i,:) = guid.pathfinder.s.A_sens_pci;
+    dat.g.pathfinder.V_inrtl_pci_est(i,:) = guid.pathfinder.s.V_inrtl_pci_est;
+    dat.g.pathfinder.V_pf_pci_est(i,:) = guid.pathfinder.s.V_pf_pci_est;
+    dat.g.pathfinder.R_pci_est(i,:) = guid.pathfinder.s.R_pci_est;
+    dat.g.pathfinder.dt(i) = guid.pathfinder.s.dt;
+    dat.g.pathfinder.cd(i) = guid.pathfinder.s.cd;
     
 
 end % store_dat()

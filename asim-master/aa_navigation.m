@@ -49,7 +49,7 @@ if mod(si-1,nav.s.sn_ratio) == 0 % rate limit calls to navigation
             nav.s.v_inrtl_pci = calcs.vel_ii + nav.s.rva_error(4:6);
             nav.s.a_sens_pci = (calcs.force_ii-calcs.gravity_ii)/calcs.mass + nav.s.rva_error(7:9);
 
-        case 3 % stochastic error + scale, bias, & tilt
+        case 3 % scale, bias, & tilt + cd estimation error
             
             % Propogate state
             n_noise = (1 - exp(-2*nav.s.dt/nav.p.tau))*nav_rnd(:,si);

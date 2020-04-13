@@ -57,7 +57,7 @@ semilogx(nep_atm(:,2)./(10.^(nep_atm(:,1)/4e5)),nep_atm(:,1)/1e3,'--g','LineWidt
 % Plot polynomial fit of density
 rho = test.g.pathfinder.rho_est(1:idx);
 rho_log = log10(rho);
-alt = vecnorm(test.g.pathfinder.R_pci(1:idx,:),2,2)/1000-24764;
+alt = vecnorm(test.g.pathfinder.R_pci_est(1:idx,:),2,2)/1000-24764;
 rho_log(alt<100) = [];
 rho(alt<100) = [];
 alt(alt<100) = [];
@@ -67,7 +67,7 @@ semilogx(10.^xx,alt,'-m','LineWidth',2)
 
 % Plot density measurements
 scatter(test.g.pathfinder.rho_est(1:idx),...
-        vecnorm(test.g.pathfinder.R_pci(1:idx,:),2,2)/1000-24764,...
+        vecnorm(test.g.pathfinder.R_pci_est(1:idx,:),2,2)/1000-24764,...
         7,'filled','MarkerFaceAlpha',.3,'MarkerEdgeAlpha',.3)
 
 hold off
@@ -140,7 +140,8 @@ hold off
 %% Plot Altitude as a Function of Time
 
 figure(103)
-plot(test.g.pathfinder.t(1:idx),test.traj.alt(1:idx,:)/1000)
+plot(test.g.pathfinder.t(1:idx),...
+     vecnorm(test.g.pathfinder.R_pci_est(1:idx,:),2,2)/1000-24764)
 title('Vehicle Flight Path')
 grid(gca,'minor')
 grid on

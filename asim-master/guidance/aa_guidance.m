@@ -98,6 +98,8 @@ if mod(si-1,guid.s.sg_ratio) == 0 % rate limit calls to guidance
             guid.pathfinder.i.V_inrtl_pci = nav.s.v_inrtl_pci; % Inertial velocity vector (PCI), m/s
             guid.pathfinder.i.V_pf_pci = nav.s.v_pf_pci; % Planet-fixed velocity vector (PCI), m/s
             guid.pathfinder.i.A_sens_pci = nav.s.a_sens_pci; % Sensed acceleration vector (PCI), m/s^2 
+            guid.pathfinder.i.g_pci = calcs.gravity_ii/calcs.mass;
+            guid.pathfinder.i.cd = guid.pathfinder.p.cd * nav.s.cd_scale;
             
             % Call bank angle control guidance
             guid.pathfinder.s = aa_guid_pathfinder( guid.pathfinder.i, guid.pathfinder.s, guid.pathfinder.p, guid.s.init_flag );
