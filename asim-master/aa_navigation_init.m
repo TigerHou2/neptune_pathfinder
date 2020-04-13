@@ -54,6 +54,7 @@ elseif nav.p.mode == 3
     nav.s.tilt_r = Rr(:);
     nav.s.tilt_v = Rv(:);
     nav.s.tilt_a = Ra(:);
+    nav.s.cd_scale = 1 + randn * nav.p.cd_scale/3;
 else
     nav_rnd = zeros(9,t_length+1);
     nav.s.x_ercv = zeros(9,1);

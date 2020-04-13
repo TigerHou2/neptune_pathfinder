@@ -56,7 +56,7 @@ in.s.traj.t_max = 2500; % double, s, maximum allowable time
 in.s.traj.r_pci_ini = [(in.p.r_e + alt0); 0; 0]; % double(3), m, initial PCI position vector
 in.s.traj.v_pci_ini = v0 .* [sind(fpa0); cosd(fpa0); 0];  % Inertial velocity
 
-in.s.data_rate = 1;
+in.s.data_rate = 1; % Hz
 
 %% Vehicle data
 
@@ -64,16 +64,17 @@ in.v.mp.m_ini = 3300; % double, kg, vehicle mass
 
 % Navigation
 in.v.gnc.n.p.mode = uint8(3); % Use ECRV + accelerometer bias & tilt
-in.v.gnc.n.p.rate = 20; % Hz
-in.v.gnc.n.p.seed = uint32(4); % nd, Error model seed
+in.v.gnc.n.p.rate = 10; % Hz
+in.v.gnc.n.p.seed = uint32(7); % nd, Error model seed
 in.v.gnc.n.p.tau = 100; % s, time constant
 in.v.gnc.n.p.omega = in.p.omega; % rad/s, planet angular velocity vector
 in.v.gnc.n.p.r_e = in.p.r_e; % m, planet equatorial radius
 in.v.gnc.n.p.r_p = in.p.r_p; % m, planet polar radius
 
-in.v.gnc.n.p.scale = [0; 0.1; 0.0012];
-in.v.gnc.n.p.bias  = [0; 0; 0; 0; 0; 0; 244e-6; 244e-6; 244e-6];
-in.v.gnc.n.p.tilt  = [0; 0; deg2rad(5)];
+in.v.gnc.n.p.scale = [0; 0; 300e-6];
+in.v.gnc.n.p.bias  = [0; 0; 0; 0; 0; 0; 300e-6; 300e-6; 300e-6];
+in.v.gnc.n.p.tilt  = [0; 0; deg2rad(0.006)];
+in.v.gnc.n.p.cd_scale = 0.1;
 
 % Aerodynamics
 LoD = 0;
@@ -85,6 +86,7 @@ in.v.aero.area_ref = pi*(4.5/2)^2; % double, m^2, aerodynamic reference area
 in.v.aero.nose_radius = 1; % double, m, nose radius
 
 % GNC
+in.v.gnc.g.p.rate = in.v.gnc.n.p.rate; % Hz
 in.v.gnc.g.p.bank_mode = uint8(6); % uint8, nd, pathfinder probe/main guidance
 
 % Guidance parameters
@@ -100,13 +102,13 @@ in.v.gnc.g.p_pathfinder.type = 1;
 
 % Markov process PSS matrix
 P_SS = zeros(9);
-P_SS(1:6,1:6) = [ ...
-    2.982e-02  5.369e-02  7.337e-02  3.062e-05  1.173e-05  9.742e-06; ...
-    5.370e-02  1.144e-01  1.498e-01  6.301e-05  2.198e-05  1.900e-05; ...
-    7.337e-02  1.499e-01  1.983e-01  8.324e-05  2.974e-05  2.542e-05; ...
-    3.063e-05  6.301e-05  8.324e-05  3.494e-08  1.243e-08  1.065e-08; ...
-    1.173e-05  2.198e-05  2.974e-05  1.243e-08  4.663e-09  3.905e-09; ...
-    9.742e-06  1.904e-05  2.542e-05  1.065e-08  3.905e-09  3.309e-09 ];
+% P_SS(1:6,1:6) = [ ...
+%     2.982e-02  5.369e-02  7.337e-02  3.062e-05  1.173e-05  9.742e-06; ...
+%     5.370e-02  1.144e-01  1.498e-01  6.301e-05  2.198e-05  1.900e-05; ...
+%     7.337e-02  1.499e-01  1.983e-01  8.324e-05  2.974e-05  2.542e-05; ...
+%     3.063e-05  6.301e-05  8.324e-05  3.494e-08  1.243e-08  1.065e-08; ...
+%     1.173e-05  2.198e-05  2.974e-05  1.243e-08  4.663e-09  3.905e-09; ...
+%     9.742e-06  1.904e-05  2.542e-05  1.065e-08  3.905e-09  3.309e-09 ];
 % P_SS(7:9,7:9) = eye(3);
 in.v.gnc.n.p.P_SS = P_SS*(1000^2);
 
