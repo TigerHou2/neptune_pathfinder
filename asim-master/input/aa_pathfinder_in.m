@@ -47,7 +47,7 @@ in.s.term.or.value(2) = 0.0; % double, m, terminate at atmospheric exit
 
 % Trajectory
 v0 = 29e3; % m/s
-fpa0 = -7.0; % deg
+fpa0 = -8; % deg
 alt0 = 500e3; % m
 
 in.s.traj.rate = 100; % double, Hz, integration rate

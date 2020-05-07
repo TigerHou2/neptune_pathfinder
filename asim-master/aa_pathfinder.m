@@ -102,22 +102,11 @@ ylabel('Height, km')
 latexify
 
 
-%% Plot Orbit for Test Run
+%% Plot Trajectory on Globe
 
 figure(102)
-[a,e] = Get_Orb_Params(r,v,mu);
-disp(a)
-ap = a * (1 + norm(e));
-pe = a * (1 - norm(e));
 
-if a >= 0
-    dur = 2*pi*sqrt(a^3/mu)/3600/24;  % orbit propagation duration [days]
-else
-    dur = 0.1;  % hyperbolic. plot 0.1 days centered around periapsis
-end
-
-pos = Get_Orb_Points(r,v,mu,res,dur,start_day);
-e_vec = ((dot(v,v)-mu/norm(r))*r - dot(r,v)*v)/mu;
+pos = test.g.pathfinder.R_pci_est(1:idx,:);
 
 hold on
 
@@ -127,7 +116,7 @@ y = y*in.p.r_m;
 z = z*in.p.r_m;
 surf(x,y,z)
 alpha 0.5
-plot3(pos(:,1), pos(:,2), pos(:,3),'LineWidth',2.5,'Color','Red')
+plot3(pos(:,1), pos(:,2), pos(:,3),'LineWidth',2.0,'Color','Red')
 
 % view(cross(r,v))
 view([1,1,1])
@@ -147,4 +136,16 @@ grid(gca,'minor')
 grid on
 xlabel('Time, s')
 ylabel('Altitude, km')
+latexify
+
+%% Plot Acceleration as a Function of Time
+
+figure(104)
+plot(test.g.pathfinder.t(1:idx),...
+     vecnorm(test.g.pathfinder.A_sens_pci(1:idx,:),2,2))
+title('Vehicle Flight Path')
+grid(gca,'minor')
+grid on
+xlabel('Time, s')
+ylabel('Acceleration, $m/s^2$')
 latexify
