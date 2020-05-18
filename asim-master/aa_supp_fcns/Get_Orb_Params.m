@@ -20,10 +20,17 @@ omg = acos(dot(n,I)/norm(n));
 if dot(n,J) < 0
     omg = 2*pi - omg;
 end
-
-w = acos(dot(n,e)/norm(n)/norm(e));
-if dot(e,K) < 0
-    w = 2*pi - w;
+if isnan(omg)
+    omg = 0;
+    w = atan2(e(2),e(1));
+    if e(3) < 0
+        w = 2*pi-w;
+    end
+else
+    w = acos(dot(n,e)/norm(n)/norm(e));
+    if dot(e,K) < 0
+        w = 2*pi - w;
+    end
 end
    
 f = acos(dot(e,r)/norm(e)/norm(r));

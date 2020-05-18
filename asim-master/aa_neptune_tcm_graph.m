@@ -8,6 +8,8 @@
 %       TCM-1: slows down s/c while maintaining same EFPA
 %       TCM-2: adjusts EFPA to a desired value.
 %
+%   See aa_neptune_tcm.m for detailed assumptions and procedures.
+%
 %
 %% Initialization
 
