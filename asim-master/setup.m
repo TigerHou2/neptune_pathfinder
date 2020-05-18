@@ -30,3 +30,4 @@ addpath(['.' filesep 'aa_supp_fcns']);
 addpath(['.' filesep 'aa-contours']);
 plottools('off'); % initializes plot tools but keeps it hidden
 close all;
+close all hidden;
