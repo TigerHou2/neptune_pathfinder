@@ -4,9 +4,14 @@
 %
 % Description:
 %   Simulates a s/c approaching Neptune on a hyperbolic orbit.
+%   The s/c deploys a pathfinder probe which reaches Neptune
+%       before the s/c. The probe collects data about the atmosphere
+%       and the s/c adjusts its aerocapture EFPA accordingly.
+%
 %   The s/c makes two TCM maneuvers:
 %       TCM-1: slows down s/c while maintaining same EFPA
-%       TCM-2: adjusts EFPA to a desired value.
+%               thus the probe arrives at EI earlier than the s/c
+%       TCM-2: adjusts EFPA to a desired value using probe data
 %
 %
 %% Initialization
@@ -14,26 +19,70 @@
 close all hidden
 clear;clc
 
+% call setup function to access necessary folders
 setup
+
+% get Neptune gravitational parameter
 neptune = get_planetary_data(8,2);
 mu = neptune.mu;
 
+% define current EFPA and also target EFPA
+% --- note: we are assuming that from entry probe data,
+% ---       we want to changed our EFPA to the target EFPA
 fpa_cur = deg2rad(-8);  % current efpa
 fpa_tgt = deg2rad(-12); %  target efpa
 
-r_ei_0 = [25264000; 0; 0];  % EI position
+% define original EI position in inertial frame
+% note that this is also the initial s/c position
+% --- note: we are assuming Neptune's orbital motion is negligible
+% ---       and thus Neptune's center is affixed to the inertial frame.
+r_ei_0 = [25264000; 0; 0];
 
+% coordinate transformation to find initial velocity of s/c
 x_axis = r_ei_0 / norm(r_ei_0);     % calculate the s/c coordinate frame
 z_axis = [0;0;1];                   % so velocity is always perpendicular
 y_axis = cross(z_axis,x_axis);      % to the position vector, and also
 rotn = [x_axis, y_axis, z_axis];    % parallel to the equator
-
 v_ei_0 = 30.5e3 * rotn * [sin(fpa_cur); cos(fpa_cur); 0]; % EI velocity
 
+% define two events:
+% --- s/c-probe separation time
+% --- s/c-probe arrival time offset
 leadtime_tcm1 = 210; % days, main s/c slowdown maneuver before original EI
 leadtime_tcm2 = 1;  % days, main s/c FPA correction maneuver before modified EI
                     %       (this is also the main s/c delay time)
+                    
+% explanation:
+% originally, the s/c and probe arrive at Neptune simultaneously
+% ||
+% ----------------------------------------------[s/c]
+% ----------------------------------------------[prb]
+%
+% we backpropagate to the first maneuver time
+% <<
+% [s/c]-----------------------------------------[EI_orig]
+% [prb]-----------------------------------------[EI_orig]
+%
+% and slow down the s/c using TCM-1 so it arrives later than the probe
+% ||
+% [s/c]----------------------------------------------------[EI_mod]
+% [prb]-----------------------------------------[EI_org]
+%
+% now we propagate until the probe reaches EI, at which point
+%   the probe sends back data to the s/c
+% >>
+% ----------------------------------------------[s/c]------[EI_mod]
+% ----------------------------------------------[prb]
+%
+% finally, the s/c uses probe data to perform TCM-2 to adjust EFPA
+% ||
+% ----------------------------------------------[s/c]-------[EI_mod_2]
+% ----------------------------------------------[prb]
+%
+% note that the main s/c delay time will not be exact after TCM-2
+% this is something that needs to be addressed in a later version.
 
+% let MATLAB draw the results in 3D
 visualize = true;
 
 
@@ -154,14 +203,29 @@ dv2 = norm( v2 - v2_tcm );
 
 disp(['TCM-2 Delta-v: ' num2str(dv2) ' m/s, Exit Flag: ' num2str(exitflag)])
 
+
+%% Plot Trajectories
+
 if visualize
 
-    figure(107)
+    figure
     hold on
     
-    disp_orbit(r_ei_0,v_ei_0,mu,50,0.05,0,'red')
-    disp_orbit(r1_tcm,v1_tcm,mu,50,0.05,leadtime_tcm1+leadtime_tcm2,'magenta')
-    disp_orbit(r2_tcm,v2_tcm,mu,50,0.05,leadtime_tcm2,'blue')
+    disp_orbit(r_ei_0,v_ei_0,mu,0.03,50,0,'red',1)
+    disp_orbit(r1_tcm,v1_tcm,mu,0.03,50,fp_time+leadtime_tcm2,'magenta',1)
+    disp_orbit(r2_tcm,v2_tcm,mu,0.03,50,leadtime_tcm2,'blue',1)
+    
+    scatter3(r_ei_0(1),r_ei_0(2),r_ei_0(3),36,'b','Filled')
+    [a,e,i,omg,w,~] = Get_Orb_Params(r2_tcm,v2_tcm,mu);
+    if isnan(omg)
+        omg = 0;
+    end
+    if isnan(w)
+        w = 0;
+    end
+    params = [a,e,i,omg,w,f_ei_2_tcm];
+    rf = Get_Orb_Vects(params,mu);
+    scatter3(rf(1),rf(2),rf(3),36,'r','Filled')
 
     [x,y,z] = sphere;
     x = x*neptune.r_m;
@@ -169,6 +233,14 @@ if visualize
     z = z*neptune.r_m;
     nep_disp = surf(x,y,z);
     alpha(nep_disp,0.5)
+    
+    legend('Original Orbit',...
+           'Main s/c Post-Separation',...
+           'Main s/c Post-EFPA Change',...
+           'Original EI Position',...
+           'New EI Position',...
+           'Neptune')
+    
     hold off
 
     view([1,1,1])
@@ -186,29 +258,41 @@ function [c,ceq] = nonlcon_tcm1(x,r_ei_0,r1,fpa_cur,dt,mu)
     cos_f1_tcm = (a*(1-e^2)-norm(r1))/norm(r1)/e;
     f1_tcm = 2*pi - acos(cos_f1_tcm);
 
+    % inequality constraints
     c(1) = a;  % SMA <= 0 (hyperbolic constraint)
     c(2) = -(e-1); % ECC >= 1 (hyperbolic constraint)
-    c(3) = -(f-pi);  % f >= pi (negative fpa constraint)
-    c(4) = abs(cos_f1_tcm)-1; % abs(cos(f1_tcm)) <= 1
+    c(3) = -(f-pi);  % f >= pi (negative fpa constraint, i.c. s/c should be entering atmosphere)
+    c(4) = abs(cos_f1_tcm)-1; % abs(cos(f1_tcm)) <= 1 (no imaginary f values)
+    
+    % equality constraints
+    % --- s/c must arrive at EI altitude
     ceq(1) = norm(r_ei_0) - ( a * (1-e^2) ) / ( 1 + e*cos(f) );
+    % --- s/c must maintain original EFPA
+    %       this assumes that if probe fails, we will use original nav plan
+    %       which would required us to stick with the original EFPA
     ceq(2) = tan(fpa_cur) - ( e*sin(f) / ( 1 + e*cos(f) ));
     
+    % --- solve for time of flight
     E_tcm1 = 2 * atanh( sqrt((e-1)/(1+e)) * tan(f1_tcm/2) );
     E_ei   = 2 * atanh( sqrt((e-1)/(1+e)) * tan(     f/2) );
-    
     M_tcm1 = e*sinh(E_tcm1) - E_tcm1; % main s/c mean anomaly at TCM-1
     M_ei   = e*sinh(E_ei  ) - E_ei;   % main s/c mean anomaly at EI
     
+    % --- s/c must arrive at EI after the probe (which is on the original
+    %       trajectory) by a specified number of days
     ceq(3) = dt - (M_ei-M_tcm1)/sqrt(mu/(-a^3))/24/3600;
 
 end
 
 function [c,ceq] = nonlcon_tcm2(x,r_ei_2,r2,fpa_tgt)
 
+    % inequality constraints
     c(1) = x(1);  % SMA <= 0 (hyperbolic constraint)
     c(2) = -(x(2)-1); % ECC >= 1 (hyperbolic constraint)
     c(3) = x(3);  % f <= 0 (negative fpa constraint)
     c(4) = abs((x(1)*(1-x(2)^2)/norm(r2)-1)/x(2))-1; % abs(cos(f1_tcm)) <= 1
+    
+    % equality constraints
     ceq(1) = norm(r_ei_2) - ( x(1) * (1-x(2)^2) ) / ( 1 + x(2)*cos(x(3)) );
     ceq(2) = tan(fpa_tgt) - ( x(2)*sin(x(3)) / ( 1 + x(2)*cos(x(3)) ));
     ceq(3) = sign(fpa_tgt) - sign(x(3)); % sign(f) = sign(fpa)
