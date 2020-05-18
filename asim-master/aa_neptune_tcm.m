@@ -29,8 +29,8 @@ mu = neptune.mu;
 % define current EFPA and also target EFPA
 % --- note: we are assuming that from entry probe data,
 % ---       we want to changed our EFPA to the target EFPA
-fpa_cur = deg2rad(-8);  % current efpa
-fpa_tgt = deg2rad(-12); %  target efpa
+fpa_cur = deg2rad(-15);  % current efpa
+fpa_tgt = deg2rad(-7); %  target efpa
 
 % define original EI position in inertial frame
 % note that this is also the initial s/c position
@@ -92,7 +92,7 @@ bp_time = - leadtime_tcm1;
 dt = leadtime_tcm1 + leadtime_tcm2;
 
 % backpropagate from pathfinder/main EI to TCM-1 time
-[r1,v1] = TimeProp_V3(r_ei_0,v_ei_0,mu,bp_time);
+[r1,v1] = TimeProp_V4(r_ei_0,v_ei_0,mu,bp_time);
 
 % get current orbit parameters
 [a1,e1,~,~,~,f1] = Get_Orb_Params(r1,v1,mu);
@@ -153,10 +153,10 @@ disp(['TCM-1 Delta-v: ' num2str(dv1) ' m/s, Exit Flag: ' num2str(exitflag)])
 fp_time = leadtime_tcm1;
 
 % forward propagate until the moment that pathfinder enters Neptune
-[r2,v2] = TimeProp_V3(r1_tcm,v1_tcm,mu,fp_time);
+[r2,v2] = TimeProp_V4(r1_tcm,v1_tcm,mu,fp_time);
 
 % forward propagate until the moment that main s/c enters Neptune
-[r_ei_2,v_ei_2] = TimeProp_V3(r1_tcm,v1_tcm,mu,fp_time + leadtime_tcm2);
+[r_ei_2,v_ei_2] = TimeProp_V4(r1_tcm,v1_tcm,mu,fp_time + leadtime_tcm2);
 
 % get current orbit parameters
 [a2,e2,~,~,~,f2] = Get_Orb_Params(r2,v2,mu);
@@ -204,6 +204,17 @@ dv2 = norm( v2 - v2_tcm );
 disp(['TCM-2 Delta-v: ' num2str(dv2) ' m/s, Exit Flag: ' num2str(exitflag)])
 
 
+%% Find New EI Position
+
+[a,e,i,omg,w,~] = Get_Orb_Params(r2_tcm,v2_tcm,mu);
+params = [a,e,i,omg,w,f_ei_2_tcm];
+rf = Get_Orb_Vects(params,mu);
+
+disp([newline 'EI Position Change:' newline ...
+      '   x: ' num2str((rf(1)-r_ei_0(1))/1000) ' km' newline ...
+      '   y: ' num2str((rf(2)-r_ei_0(2))/1000) ' km' newline ...
+      '   z: ' num2str((rf(3)-r_ei_0(3))/1000) ' km'])
+
 %% Plot Trajectories
 
 if visualize
@@ -211,39 +222,30 @@ if visualize
     figure
     hold on
     
-    disp_orbit(r_ei_0,v_ei_0,mu,0.03,50,0,'red',1)
-    disp_orbit(r1_tcm,v1_tcm,mu,0.03,50,fp_time+leadtime_tcm2,'magenta',1)
-    disp_orbit(r2_tcm,v2_tcm,mu,0.03,50,leadtime_tcm2,'blue',1)
+    disp_orbit(r_ei_0,v_ei_0,mu,0.03,50,0,'r',1)
+    disp_orbit(r1_tcm,v1_tcm,mu,0.03,50,fp_time+leadtime_tcm2,'g',1)
+    disp_orbit(r2_tcm,v2_tcm,mu,0.03,50,leadtime_tcm2,'b',1)
     
-    scatter3(r_ei_0(1),r_ei_0(2),r_ei_0(3),36,'b','Filled')
-    [a,e,i,omg,w,~] = Get_Orb_Params(r2_tcm,v2_tcm,mu);
-    if isnan(omg)
-        omg = 0;
-    end
-    if isnan(w)
-        w = 0;
-    end
-    params = [a,e,i,omg,w,f_ei_2_tcm];
-    rf = Get_Orb_Vects(params,mu);
-    scatter3(rf(1),rf(2),rf(3),36,'r','Filled')
+    scatter3(r_ei_0(1),r_ei_0(2),r_ei_0(3),36,'r','Filled')
+    scatter3(rf(1),rf(2),rf(3),36,'b','Filled')
 
     [x,y,z] = sphere;
     x = x*neptune.r_m;
     y = y*neptune.r_m;
     z = z*neptune.r_m;
-    nep_disp = surf(x,y,z);
+    nep_disp = surf(x,y,z,'HandleVisibility','off');
     alpha(nep_disp,0.5)
     
     legend('Original Orbit',...
            'Main s/c Post-Separation',...
            'Main s/c Post-EFPA Change',...
            'Original EI Position',...
-           'New EI Position',...
-           'Neptune')
+           'New EI Position')
     
     hold off
 
     view([1,1,1])
+    latexify
     
 end
 

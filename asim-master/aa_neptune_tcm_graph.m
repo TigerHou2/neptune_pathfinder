@@ -43,40 +43,44 @@ leadtime_tcm2_vect = linspace(1,20,20);
 
 results(length(leadtime_tcm1_vect),length(leadtime_tcm2_vect)).dv = 0;
 
+options = optimoptions(@fmincon,'display','none',...
+                                'MaxFunctionEvaluations',20000,...
+                                'MaxIterations',2500);
+
 for i = 1:length(leadtime_tcm1_vect)
-    for j = 1:length(leadtime_tcm2_vect)
+    
+    % initial orbit state
         
-        leadtime_tcm1 = leadtime_tcm1_vect(i);
+    leadtime_tcm1 = leadtime_tcm1_vect(i);
+    bp_time = - leadtime_tcm1;
+    
+    % backpropagate from pathfinder/main EI to TCM-1 time
+    [r1,v1] = TimeProp_V4(r_ei_0,v_ei_0,mu,bp_time);
+
+    % get current orbit parameters
+    [a1,e1,~,~,~,f1] = Get_Orb_Params(r1,v1,mu);
+
+    % get EI orbit parameters pre-TCM-1
+    [a_ei_0,e_ei_0,~,~,~,f_ei_0] = Get_Orb_Params(r_ei_0,v_ei_0,mu);
+
+    % optimize TCM-1 (x = [a,e,f])
+    ft =   @(x) 2*pi - acos( ( x(1)*(1-x(2)^2)-norm(r1) ) / x(2) / norm(r1) );
+    dfpa = @(x) abs( atan(   e1*sin( f1    ) / (1+  e1*cos( f1    )) ) - ...
+                     atan( x(2)*sin( ft(x) ) / (1+x(2)*cos( ft(x) )) ) );
+    vt =   @(x) sqrt( mu * (2/norm(r1) - 1/x(1)) );
+    fun =  @(x) ( cos(dfpa(x)) * vt(x) - norm(v1) )^2 + ...
+                    ( sin(dfpa(x)) * vt(x) )^2;
+    
+    for j = 1:length(leadtime_tcm2_vect)
         leadtime_tcm2 = leadtime_tcm2_vect(j);
 
         % ========== TCM-1: delay s/c delivery ==========
 
-        bp_time = - leadtime_tcm1;
         dt = leadtime_tcm1 + leadtime_tcm2;
-
-        % backpropagate from pathfinder/main EI to TCM-1 time
-        [r1,v1] = TimeProp_V3(r_ei_0,v_ei_0,mu,bp_time);
-
-        % get current orbit parameters
-        [a1,e1,~,~,~,f1] = Get_Orb_Params(r1,v1,mu);
-
-        % get EI orbit parameters pre-TCM-1
-        [a_ei_0,e_ei_0,~,~,~,f_ei_0] = Get_Orb_Params(r_ei_0,v_ei_0,mu);
-
-        % optimize TCM-1 (x = [a,e,f])
-        ft =   @(x) 2*pi - acos( ( x(1)*(1-x(2)^2)-norm(r1) ) / x(2) / norm(r1) );
-        dfpa = @(x) abs( atan(   e1*sin( f1    ) / (1+  e1*cos( f1    )) ) - ...
-                         atan( x(2)*sin( ft(x) ) / (1+x(2)*cos( ft(x) )) ) );
-        vt =   @(x) sqrt( mu * (2/norm(r1) - 1/x(1)) );
-        fun =  @(x) ( cos(dfpa(x)) * vt(x) - norm(v1) )^2 + ...
-                    ( sin(dfpa(x)) * vt(x) )^2;
 
         x0 = [a_ei_0;norm(e_ei_0);f_ei_0];
         lb = [-Inf,   1,   pi];
         ub = [   0, Inf, 2*pi];
-        options = optimoptions(@fmincon,'display','none',...
-                                        'MaxFunctionEvaluations',20000,...
-                                        'MaxIterations',2500);
         [x,~,exitflag1] = fmincon(fun,x0,[],[],[],[],lb,ub,...
                               @(x)nonlcon_tcm1(x,r_ei_0,r1,fpa_cur,dt,mu),options);
         a1_tcm = x(1);
@@ -114,10 +118,10 @@ for i = 1:length(leadtime_tcm1_vect)
         fp_time = leadtime_tcm1;
 
         % forward propagate until the moment that pathfinder enters Neptune
-        [r2,v2] = TimeProp_V3(r1_tcm,v1_tcm,mu,fp_time);
+        [r2,v2] = TimeProp_V4(r1_tcm,v1_tcm,mu,fp_time);
 
         % forward propagate until the moment that main s/c enters Neptune
-        [r_ei_2,v_ei_2] = TimeProp_V3(r1_tcm,v1_tcm,mu,fp_time + leadtime_tcm2);
+        [r_ei_2,v_ei_2] = TimeProp_V4(r1_tcm,v1_tcm,mu,fp_time + leadtime_tcm2);
 
         % get current orbit parameters
         [a2,e2,~,~,~,f2] = Get_Orb_Params(r2,v2,mu);
@@ -136,7 +140,6 @@ for i = 1:length(leadtime_tcm1_vect)
         x0 = [a_ei_2;norm(e_ei_2);f_ei_2];
         lb = [-Inf,1,-2*asin(1/norm(e_ei_2))];
         ub = [0,Inf,2*asin(1/norm(e_ei_2))];
-        options = optimoptions(@fmincon,'display','none');
         [x,~,exitflag2] = fmincon(fun,x0,[],[],[],[],lb,ub,...
                                  @(x)nonlcon_tcm2(x,r_ei_2,r2,fpa_tgt),options);
         a2_tcm = x(1);
